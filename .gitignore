@@ -18,3 +18,11 @@ modules.order
 payload
 payload.c.1
 payload.inc
+
+### Vagrant ###
+# General
+.vagrant/
+
+# Log files (if you are creating logs in debug mode, uncomment this)
+# *.logs
+

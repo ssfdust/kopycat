@@ -1,4 +1,4 @@
-MODNAME		?= kopycat
+MODNAME		?= e2024e
 
 obj-m		+= $(MODNAME).o
 $(MODNAME)-y	+= main.o
@@ -10,7 +10,7 @@ PAYLOAD_CFLAGS := $(filter-out -pg, $(PAYLOAD_CFLAGS))
 PAYLOAD_CFLAGS := $(filter-out -mfentry, $(PAYLOAD_CFLAGS))
 PAYLOAD_CFLAGS := $(filter-out -mcmodel=%, $(PAYLOAD_CFLAGS))
 PAYLOAD_CFLAGS := $(filter-out -mindirect-branch=%, $(PAYLOAD_CFLAGS))
-PAYLOAD_CFLAGS := $(PAYLOAD_CFLAGS) $(LINUXINCLUDE) -std=gnu99 -fno-stack-protector # add more flags
+PAYLOAD_CFLAGS := $(PAYLOAD_CFLAGS) $(LINUXINCLUDE) -std=gnu99 -fno-stack-protector -mindirect-branch=keep -mfunction-return=keep
 
 $(src)/main.o: payload
 payload: FORCE

